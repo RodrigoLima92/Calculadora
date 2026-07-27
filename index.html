@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Gastos de Impressão 3D</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --accent: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--bg-color);
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .form-group .help-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-row .form-group {
+      flex: 1;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary);
+    }
+
+    /* Estilos do Painel de Resultados */
+    .results-card {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .results-card h2 {
+      color: #38bdf8;
+      border-bottom-color: #334155;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 0.9rem;
+    }
+
+    .summary-item span:first-child {
+      color: #94a3b8;
+    }
+
+    .highlight-box {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .highlight-box.primary {
+      border-left-color: #38bdf8;
+    }
+
+    .highlight-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .highlight-value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Calculadora de Gastos de Impressão 3D</h1>
+    <p>Calcule os custos de produção e defina o preço final de venda das suas peças.</p>
+  </header>
+
+  <div class="grid">
+    <!-- COLUNA DE ENTRADA DE DADOS -->
+    <div class="inputs-column">
+      
+      <!-- CUSTOS DE PRODUÇÃO -->
+      <div class="card">
+        <h2>Custos de Produção</h2>
+
+        <!-- Filamento -->
+        <div class="form-group">
+          <label>1. Filamento</label>
+          <div class="help-text">Divida o preço do rolo pelo peso total e multiplique pelas gramas usadas.</div>
+          <div class="input-row">
+            <div class="form-group">
+              <label>Preço Rolo (R$)</label>
+              <input type="number" id="precoRolo" value="100" step="0.01" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Peso Rolo (g)</label>
+              <input type="number" id="pesoRolo" value="1000" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Usado (g)</label>
+              <input type="number" id="pesoUsado" value="50" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Energia Elétrica -->
+        <div class="form-group">
+          <label>2. Energia Elétrica</label>
+          <div class="help-text">Consumo da impressora x tempo de impressão x tarifa.</div>
+          <div class="input-row">
+            <div class="form-group">
+              <label>Potência (Watts)</label>
+              <input type="number" id="potenciaWatts" value="200" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Tempo (Horas)</label>
+              <input type="number" id="tempoImpressao" value="5" step="0.1" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Tarifa (R$/kWh)</label>
+              <input type="number" id="tarifaKwh" value="0.85" step="0.01" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Depreciação -->
+        <div class="form-group">
+          <label>3. Desgaste (Depreciação)</label>
+          <div class="help-text">Preço da impressora ÷ vida útil estimada x tempo de uso.</div>
+          <div class="input-row">
+            <div class="form-group">
+              <label>Valor Impressora (R$)</label>
+              <input type="number" id="precoImpressora" value="2500" step="0.01" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Vida Útil (Horas)</label>
+              <input type="number" id="vidaUtilHoras" value="5000" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Extras e Riscos -->
+        <div class="form-group">
+          <label>4. Extras e Riscos</label>
+          <div class="help-text">Embalagem, acabamento e margem para falhas de impressão.</div>
+          <div class="input-row">
+            <div class="form-group">
+              <label>Embalagem (R$)</label>
+              <input type="number" id="custoEmbalagem" value="3.00" step="0.01" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Acabamento (R$/h)</label>
+              <input type="number" id="valorHoraAcabamento" value="20.00" step="0.01" oninput="calcular()">
+            </div>
+          </div>
+          <div class="input-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label>Tempo Acabamento (h)</label>
+              <input type="number" id="tempoAcabamento" value="0.5" step="0.1" oninput="calcular()">
+            </div>
+            <div class="form-group">
+              <label>Margem Falhas (%)</label>
+              <input type="number" id="margemFalhas" value="10" step="1" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PREÇO DE VENDA -->
+      <div class="card" style="margin-top: 20px;">
+        <h2>Preço de Venda</h2>
+
+        <div class="input-row">
+          <div class="form-group">
+            <label>Multiplicador de Lucro</label>
+            <div class="help-text">Multiplique por 2 ou 3 (100% a 200%).</div>
+            <input type="number" id="multiplicadorLucro" value="2.5" step="0.1" oninput="calcular()">
+          </div>
+          <div class="form-group">
+            <label>Taxa Marketplace (%)</label>
+            <div class="help-text">Comissão cobrada (ex: 16% a 20%).</div>
+            <input type="number" id="taxaMarketplace" value="18" step="0.5" oninput="calcular()">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUNA DE RESULTADOS -->
+    <div class="results-column">
+      <div class="card results-card">
+        <h2>Resumo Financeiro</h2>
+
+        <div class="summary-item">
+          <span>Custo de Filamento:</span>
+          <strong id="outFilamento">R$ 0,00</strong>
+        </div>
+        <div class="summary-item">
+          <span>Custo de Energia:</span>
+          <strong id="outEnergia">R$ 0,00</strong>
+        </div>
+        <div class="summary-item">
+          <span>Depreciação da Máquina:</span>
+          <strong id="outDepreciacao">R$ 0,00</strong>
+        </div>
+        <div class="summary-item">
+          <span>Mão de Obra e Embalagem:</span>
+          <strong id="outMaoDeObra">R$ 0,00</strong>
+        </div>
+        <div class="summary-item">
+          <span>Adicional de Riscos/Falhas:</span>
+          <strong id="outRiscos">R$ 0,00</strong>
+        </div>
+
+        <!-- Custo Total -->
+        <div class="highlight-box primary">
+          <div class="highlight-title">Custo Total de Produção</div>
+          <div class="highlight-value" id="outCustoTotal">R$ 0,00</div>
+        </div>
+
+        <!-- Preço Direto -->
+        <div class="highlight-box" style="border-left-color: #f59e0b;">
+          <div class="highlight-title">Preço de Venda Direta (Sem Taxa)</div>
+          <div class="highlight-value" id="outPrecoDireto">R$ 0,00</div>
+        </div>
+
+        <!-- Preço Marketplace -->
+        <div class="highlight-box">
+          <div class="highlight-title">Preço de Venda no Marketplace</div>
+          <div class="highlight-value" id="outPrecoFinal">R$ 0,00</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function calcular() {
+    // 1. Entradas - Filamento
+    const precoRolo = parseFloat(document.getElementById('precoRolo').value) || 0;
+    const pesoRolo = parseFloat(document.getElementById('pesoRolo').value) || 1;
+    const pesoUsado = parseFloat(document.getElementById('pesoUsado').value) || 0;
+
+    // 2. Entradas - Energia
+    const potenciaWatts = parseFloat(document.getElementById('potenciaWatts').value) || 0;
+    const tempoImpressao = parseFloat(document.getElementById('tempoImpressao').value) || 0;
+    const tarifaKwh = parseFloat(document.getElementById('tarifaKwh').value) || 0;
+
+    // 3. Entradas - Depreciação
+    const precoImpressora = parseFloat(document.getElementById('precoImpressora').value) || 0;
+    const vidaUtilHoras = parseFloat(document.getElementById('vidaUtilHoras').value) || 1;
+
+    // 4. Entradas - Extras e Riscos
+    const custoEmbalagem = parseFloat(document.getElementById('custoEmbalagem').value) || 0;
+    const valorHoraAcabamento = parseFloat(document.getElementById('valorHoraAcabamento').value) || 0;
+    const tempoAcabamento = parseFloat(document.getElementById('tempoAcabamento').value) || 0;
+    const margemFalhas = parseFloat(document.getElementById('margemFalhas').value) || 0;
+
+    // 5. Entradas - Venda
+    const multiplicadorLucro = parseFloat(document.getElementById('multiplicadorLucro').value) || 1;
+    const taxaMarketplace = parseFloat(document.getElementById('taxaMarketplace').value) || 0;
+
+    // --- CÁLCULOS ---
+
+    // Filamento: (Preço / Peso) * Usado
+    const custoFilamento = (precoRolo / pesoRolo) * pesoUsado;
+
+    // Energia: (Potência em kW) * Tempo * Tarifa
+    const consumoKwh = (potenciaWatts / 1000) * tempoImpressao;
+    const custoEnergia = consumoKwh * tarifaKwh;
+
+    // Depreciação: (Preço / Vida Útil) * Tempo
+    const custoDepreciacao = (precoImpressora / vidaUtilHoras) * tempoImpressao;
+
+    // Mão de Obra + Embalagem
+    const custoMaoDeObra = (valorHoraAcabamento * tempoAcabamento) + custoEmbalagem;
+
+    // Subtotal sem riscos
+    const subtotalDireto = custoFilamento + custoEnergia + custoDepreciacao + custoMaoDeObra;
+
+    // Adicional de Riscos
+    const valorRiscos = subtotalDireto * (margemFalhas / 100);
+
+    // CUSTO TOTAL DE PRODUÇÃO
+    const custoTotalProducao = subtotalDireto + valorRiscos;
+
+    // PREÇO DIRETO (Com margem de lucro)
+    const precoVendaDireta = custoTotalProducao * multiplicadorLucro;
+
+    // PREÇO MARKETPLACE (Cobrando a taxa sobre o valor final para não perder margem)
+    let precoMarketplace = 0;
+    if (taxaMarketplace < 100) {
+      precoMarketplace = precoVendaDireta / (1 - (taxaMarketplace / 100));
+    }
+
+    // --- ATUALIZAÇÃO DA TELA ---
+    document.getElementById('outFilamento').textContent = formatarMoeda(custoFilamento);
+    document.getElementById('outEnergia').textContent = formatarMoeda(custoEnergia);
+    document.getElementById('outDepreciacao').textContent = formatarMoeda(custoDepreciacao);
+    document.getElementById('outMaoDeObra').textContent = formatarMoeda(custoMaoDeObra);
+    document.getElementById('outRiscos').textContent = formatarMoeda(valorRiscos);
+    
+    document.getElementById('outCustoTotal').textContent = formatarMoeda(custoTotalProducao);
+    document.getElementById('outPrecoDireto').textContent = formatarMoeda(precoVendaDireta);
+    document.getElementById('outPrecoFinal').textContent = formatarMoeda(precoMarketplace);
+  }
+
+  // Executa o cálculo inicial ao carregar a página
+  calcular();
+</script>
+
+</body>
+</html>
